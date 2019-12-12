@@ -11,6 +11,14 @@ there has been essentially no testing to check this works
 correctly (although development of this package did find
 a bug in the FORTRAN code of the model).
 
+At the moment I have only got this working with the conda
+release of CIAO 4.12, using Linux/Python 3.7. For some reason
+it doesn't seem to work with the ciao-install version of CIAO 4.12
+(a link error). It could be adapted to work with CIAO 4.11, but
+this would require changing the include files in the `xspec/`
+directory and the versions of the XSPEC libraries that are linked
+to (`hdsp`, `CCfits`) in `setup.py`.
+
 ## Legal Terms
 
 This code is released into the public domain, using the
