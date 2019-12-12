@@ -27,9 +27,11 @@ product of my employer.
 
 Start up CIAO - preferably CIAO 4.12 - and then try
 
+```
 % git clone https://github.com/DougBurke/xspeclmodels
 % cd xspeclmodels
 % python setup.py build
+```
 
 Hopefully there'll be no error message here, which then lets
 you install it. Note that you will need write permission
@@ -41,7 +43,9 @@ there is a possibility that it could mess up your CIAO installation
 download files for CIAO (when using `ciao-install`), don't
 you!
 
+```
 % python setup.py install
+```
 
 # Use
 
@@ -91,7 +95,7 @@ sherpa In [5]: set_source(src)
 sherpa In [6]: plot_source(xlog=True, ylog=True)
 ```
 
-~[The absorbed model](imgs/example.png)
+![The absorbed model](imgs/example.png)
 
 For those that just want the model class, and do not use the
 Sherpa "UI" layer, you can just `import xspeclmodels`.
