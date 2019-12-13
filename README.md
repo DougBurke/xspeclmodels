@@ -41,9 +41,17 @@ Start up CIAO - preferably CIAO 4.12 - and then try
 % python setup.py build
 ```
 
-Hopefully there'll be no error message here, which then lets
-you install it. Note that you will need write permission
-to your Python environment, which likely means you installed
+Hopefully there'll be no error message here.
+
+You can change to the build directory, it will be called
+`build/lib.<something-or-other-involving-linus-or-macos>',
+to test out the module. I suggest the example session from the
+"Use" section below.
+
+After testing - or before, if you feel adventurous - you will
+want to install the module (or you can just copy around the files
+to your current working directory). Note that you will need write
+permission to your Python environment, which likely means you installed
 CIAO yourself (if installed with `ciao-install`), or you
 are trying out the conda installation of CIAO. This means
 there is a possibility that it could mess up your CIAO installation
