@@ -44,7 +44,7 @@ Start up CIAO - preferably CIAO 4.12 - and then try
 Hopefully there'll be no error message here.
 
 You can change to the build directory, it will be called
-`build/lib.<something-or-other-involving-linus-or-macos>',
+`build/lib.<something-or-other-involving-linux-or-macos>`,
 to test out the module. I suggest the example session from the
 "Use" section below.
 
