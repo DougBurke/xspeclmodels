@@ -4,7 +4,9 @@
 //
 // Provide the Python interface to XSPEC local models using Sherpa.
 //
-// At present limited to zkerrbb.cxx
+// At present limited to:
+//     zkerrbb.cxx (which calls zrunkbb.f)
+//     agnslim.f
 //
 
 #include <iostream>
@@ -61,11 +63,19 @@ extern "C" {
     cppModelWrapper(energy, nFlux, params, spectrumNumber, flux, fluxError,
 		    initStr, nPar, zkerrbb);
   }
+
+  void agnslim_(float* ear, int* ne, float* param, int* ifl, float* photar, float* photer);
+
 }
 
 
 static PyMethodDef Wrappers[] = {
-  XSPECMODELFCT_C_NORM( C_zkerrbb, 10 ),  // 1 + nPar to handle norm
+  // remember, the number of parameters here is 1 + <value from lmodel.dat>
+  // for _NORM parameters.
+  //
+  XSPECMODELFCT_C_NORM( C_zkerrbb, 10 ),
+  XSPECMODELFCT_NORM( agnslim, 15 ),
+
   { NULL, NULL, 0, NULL }
 };
 

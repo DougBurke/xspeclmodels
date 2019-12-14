@@ -6,18 +6,34 @@ This is an experiment in providing support for the
 in
 [Sherpa](https://cxc.harvard.edu/sherpa/).
 
-At present the *only* supported model is `zkerrbb`, and
-there has been essentially no testing to check this works
+At present the *only* supported models are:
+
+ - `agnslim`
+ - `zkerrbb`
+
+and there has been *essentially no testing* to check this works
 correctly (although development of this package did find
-a bug in the FORTRAN code of the model).
+a bug in the FORTRAN code of the `zkerrbb` model).
 
 At the moment I have only got this working with the conda
-release of CIAO 4.12, using Linux/Python 3.7. For some reason
-it doesn't seem to work with the ciao-install version of CIAO 4.12
-(a link error). It could be adapted to work with CIAO 4.11, but
-this would require changing the include files in the `xspec/`
-directory and the versions of the XSPEC libraries that are linked
-to (`hdsp`, `CCfits`) in `setup.py`.
+release of CIAO 4.12, using Linux/Python 3.7. I have not tested
+other conda Python versions, or the macOS conda version. I have
+*not* been able to get the models to link against the ciao-install
+version of CIAO (I suspect a compiler version issue), so at present
+I advise using the conda build.
+
+It *could* be made to work with CIAO 4.11 but I do not have time
+to do so at this time (the include files in the `xspec/` directory
+would have to be replaced with those for XSPEC 12.10.0, the
+library versions for the XSPEC libraries changed in `setup.py`,
+and the link issues mentioned above worked out).
+
+## What versions of the models are used?
+
+The models are taken from the
+[XSPEC GitHub repository](https://github.com/HEASARC/xspec_localmodels)
+at the following revision:
+[December 11 2019 - 5ef6af6ed9991746cbaef42c1fac3c054f6b955c](https://github.com/HEASARC/xspec_localmodels/blob/5ef6af6ed9991746cbaef42c1fac3c054f6b955c/README.md).
 
 ## Legal Terms
 
@@ -33,7 +49,7 @@ product of my employer.
 
 # Installation
 
-Start up CIAO - preferably CIAO 4.12 - and then try
+Start up CIAO - preferably the conda version of CIAO 4.12 - and then try
 
 ```
 % git clone https://github.com/DougBurke/xspeclmodels
@@ -84,9 +100,10 @@ IPython profile: sherpa
 Using matplotlib backend: Qt5Agg
 
 sherpa In [1]: import xspeclmodels.ui
+Adding XSPEC local model: xsagnslim
 Adding XSPEC local model: xszkerrbb
 
-sherpa In [2]: src = xsphabs.gal * xszkerrbb.mdk
+sherpa In [2]: src = xsphabs.gal * xszkerrbb.mdl
 
 sherpa In [3]: print(src)
 (xsphabs.gal * xszkerrbb.mdl)
@@ -115,3 +132,22 @@ sherpa In [6]: plot_source(xlog=True, ylog=True)
 
 For those that just want the model class, and do not use the
 Sherpa "UI" layer, you can just `import xspeclmodels`.
+
+## I don't want screen output when I import the models!
+
+The screen messages created by `xspeclmodels.ui` are from the
+Sherpa logging instance, so you can turn them off when
+importing the model with the following (don't forget to
+change the `level` back to `INFO` afterwards!):
+
+```
+sherpa In [1]: import logging
+
+sherpa In [2]: logger = logging.getLogger('sherpa')
+
+sherpa In [3]: logger.setLevel(logging.WARNING)
+
+sherpa In [4]: import xspeclmodels.ui
+
+sherpa In [5]: logger.setLevel(logging.INFO)
+```
