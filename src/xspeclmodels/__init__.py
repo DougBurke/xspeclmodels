@@ -3,9 +3,26 @@
 # It was written by Douglas Burke dburke.gw@gmail.com
 #
 """
-Sherpa interface to the XSPEC local model: zkerrbb
+Sherpa interface to XSPEC local models:
+    agnslim
+    zkerrbb
 
-% cat lmodel.dat
+agnslim     14      0.03       1.e20          agnslim  add  0
+mass        solar       1e7         1.0       1.0       1.e10   1.e10       -.1
+dist        Mpc         100         0.01      0.01      1.e9    1.e9        -.01
+logmdot     " "           1.      -10.      -10.        3       3           0.01
+astar       " "           0.        0.        0.        0.998   0.998      -1
+cosi        " "           0.5	    0.05      0.05	    1.	    1.         -1
+kTe_hot     keV(-pl)    100.0      10        10       300      300         -1
+kTe_warm    keV(-sc)      0.2       0.1       0.1       0.5      0.5        1e-2
+Gamma_hot   " "           2.4       1.3       1.3       3        3.         0.01
+Gamma_warm  "(-disk)"     3.0       2         2         5.      10.         0.01
+R_hot       "Rg "        10.0       2.0       2.0     500      500          0.01
+R_warm      "Rg"         20.0       2         2       500      500	        0.1
+logrout     "(-selfg) "  -1.0      -3.0      -3.0       7.0      7.0       -1e-2
+rin         ""           -1        -1        -1       100.     100.        -1
+redshift    " "           0.0       0.        0.        5        5         -1
+
 zkerrbb  9     0.     1.e6      C_zkerrbb  add     0
 eta   " "        0.     0.     0.        1.0          1.0       -0.01
 a     " "        0.5 -0.99   -0.99     0.9999       0.9999        0.01
@@ -25,7 +42,7 @@ from sherpa.astro.xspec import XSAdditiveModel, get_xsversion
 from . import _models
 
 
-__all__ = ('XSzkerrbb', )
+__all__ = ('XSagnslim', 'XSzkerrbb', )
 
 
 # We need to ensure that the XSPEC model library has been initialized
@@ -35,6 +52,96 @@ __all__ = ('XSzkerrbb', )
 # has been initialized when this module is imported.
 #
 get_xsversion()
+
+
+class XSagnslim(XSAdditiveModel):
+    """The XSPEC agnslim model: AGN super-Eddington accretion model
+
+    See [1]_
+
+    Attributes
+    ----------
+    mass
+        black hole mass in solar masses
+    dist
+        comoving (proper) distance in Mpc
+    logmdot
+        mdot = Mdot / Mdot_edd where eta Mdot_Edd c^2 = L_Edd
+    astar
+        spin of the black hole (dimensionless)
+    cosi
+        cosine of the inclination angle i for the warm Comptonising component and
+        the outer disc.
+    kTe_hot
+        electron temperature for the hot Comptonisation component in keV. If this
+        parameter is negative then only the hot Comptonisation component is used.
+    kTe_warm
+        electron temperature for the warm Comptonisation component in keV. If this
+        parameter is negative then only the warm Comptonisation component is used.
+    Gamma_hot
+        the spectral index of the hot Comptonisation component.
+    Gamma_warm
+        the spectral index of the warm Comptonisation component. If this parameter is
+        negative then only the outer disc component is used.
+    R_hot
+        outer radius of the hot Comptonisation component in Rg
+    R_warm
+        outer radius of the warm Comptonisation component in Rg
+    logrout
+        log of the outer radius of the disc in units of Rg. If this parameter is negative,
+        the code will use the self gravity radius as calculated from Laor & Netzer
+        (1989, MNRAS, 238, 897L).
+    rin
+        the inner radius of the disc in Rg. If this parameter is -1 (the default), the
+        model will use the radius calculated from KD19. This must be greater than R_hot
+        for mdot greater than 6 and greater than R_isco for mdot less than 6.
+    redshift
+    norm
+        this must be fixed to 1
+
+    References
+    ----------
+
+    .. [1] https://github.com/HEASARC/xspec_localmodels/tree/master/agnslim
+
+    """
+
+    _calc = _models.agnslim
+
+    def __init__(self, name='agnslim'):
+        self.mass = Parameter(name, 'mass', 1e7, 1, 1e10, 1, 1e10,
+                              units='solar', frozen=True)
+        self.dist = Parameter(name, 'dist', 100, 0.01, 1e9, 0.01, 1e9,
+                              units='Mpc', frozen=True)
+        self.logmdot = Parameter(name, 'logmdot', 1, -10, 3, -10, 3)
+        self.astar = Parameter(name, 'astar', 0, 0, 0.998, 0, 0.998,
+                               frozen=True)
+        self.cosi = Parameter(name, 'cosi', 0.5, 0.05, 1, 0.05, 1,
+                              frozen=True)
+        self.kTe_hot = Parameter(name, 'kTe_hot', 100, 10, 300, 10, 300,
+                                 units='KeV(-pl)', frozen=True)
+        self.kTe_warm = Parameter(name, 'kTe_warm', 0.2, 0.1, 0.5, 0.1, 0.5,
+                                  units='KeV(-sc)')
+        self.Gamma_hot = Parameter(name, 'Gamma_hot', 2.4, 1.3, 3, 1.3, 3)
+        self.Gamma_warm = Parameter(name, 'Gamma_warm', 3.0, 2, 5, 2, 10,
+                                    units='(-disk)')
+        self.R_hot = Parameter(name, 'R_hot', 10, 2, 500, 2, 500,
+                               units='Rg')
+        self.R_warm = Parameter(name, 'R_warm', 20, 2, 500, 2, 500,
+                               units='Rg')
+        self.logrout = Parameter(name, 'logrout', -1.0, -3, 7, -3, 7,
+                                 units='(-selfg)', frozen=True)
+        self.rin = Parameter(name, 'rin', -1, -1, 100, -1, 100,
+                             frozen=True)
+        self.redshift = Parameter(name, 'redshift', 0, 0, 5, 0, 5,
+                                  frozen=True)
+        self.norm = Parameter(name, 'norm', 1.0, alwaysfrozen=True)
+
+        pars = (self.mass, self.dist, self.logmdot, self.astar, self.cosi,
+                self.kTe_hot, self.kTe_warm, self.Gamma_hot, self.Gamma_warm,
+                self.R_hot, self.R_warm, self.logrout, self.rin,
+                self.redshift, self.norm)
+        XSAdditiveModel.__init__(self, name, pars)
 
 
 class XSzkerrbb(XSAdditiveModel):

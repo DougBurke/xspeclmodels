@@ -7,11 +7,14 @@ Provide access to the local models when using the Sherpa UI
 layer.
 
 The added models are reported to the user using Sherpa's logger
-at the logging.INFO level.
+at the logging.INFO level. If the model exists in Sherpa's XSPEC
+module then we skip it here.
 
 """
 
 from sherpa.astro import ui
+from sherpa.astro import xspec
+
 import logging
 
 import xspeclmodels
@@ -19,8 +22,10 @@ import xspeclmodels
 
 logger = logging.getLogger('sherpa')
 
+xsmodels = set([n for n in dir(xspec) if n.startswith('XS')])
+
 for name in xspeclmodels.__all__:
-    if not name.startswith('XS'):
+    if not name.startswith('XS') or name in xsmodels:
         continue
 
     cls = getattr(xspeclmodels, name)

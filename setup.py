@@ -62,12 +62,17 @@ libnames = ["XSFunctions", "XSUtil", "XS", "hdsp_6.26",
 
 # What FORTRAN code needs compiling?
 #
-fhead = 'zrunkbb'
 fdir = os.path.join('src', 'xspeclmodels', 'src')
-fcode = os.path.join(fdir, '{}.f'.format(fhead))
+fcodes = []
+fobjs = []
+for fhead in ['agnslim', 'zrunkbb']:
+    fcode = os.path.join(fdir, '{}.f'.format(fhead))
+    fcodes.append(fcode)
 
-# Would realy like to put this in the build directory
-fobj = os.path.join(fdir, '{}.o'.format(fhead))
+    # Would realy like to put this in the build directory
+    #
+    fobj = os.path.join(fdir, '{}.o'.format(fhead))
+    fobjs.append(fobj)
 
 mod = Extension('xspeclmodels._models',
                 include_dirs=includes,
@@ -75,7 +80,7 @@ mod = Extension('xspeclmodels._models',
                 libraries=libnames,
                 sources=['src/xspeclmodels/src/_models.cxx',
                          'src/xspeclmodels/src/zkerrbb.cxx'],
-                extra_objects=[fobj],
+                extra_objects=fobjs,
                 # , extra_link_args=['-lgfortran']
                 )
 
@@ -87,16 +92,17 @@ mod = Extension('xspeclmodels._models',
 cmplr = fcompiler.new_fcompiler()
 cmplr.customize()
 
-if os.path.exists(fobj):
-    os.remove(fobj)
+for fcode, fobj in zip(fcodes, fobjs):
+    if os.path.exists(fobj):
+        os.remove(fobj)
 
-cmds = cmplr.compiler_f77 + ['-c', fcode, '-o', fobj]
-print("Manually building FORTRAN with:")
-print(" ".join(cmds))
-subprocess.run(cmds, check=True)
+    cmds = cmplr.compiler_f77 + ['-c', fcode, '-o', fobj]
+    print("Manually building FORTRAN with:")
+    print(" ".join(cmds))
+    subprocess.run(cmds, check=True)
 
-if not os.path.exists(fobj):
-    raise IOError("Unable to compile {} to create {}".format(fcode, fobj))
+    if not os.path.exists(fobj):
+        raise IOError("Unable to compile {} to create {}".format(fcode, fobj))
 
 
 setup(name='xspeclmodels',
