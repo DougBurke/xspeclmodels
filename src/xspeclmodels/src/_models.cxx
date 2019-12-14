@@ -7,6 +7,8 @@
 // At present limited to:
 //     zkerrbb.cxx (which calls zrunkbb.f)
 //     agnslim.f
+//     cluscool.cxx
+//     vcluscool.cxx
 //
 
 #include <iostream>
@@ -66,6 +68,32 @@ extern "C" {
 
   void agnslim_(float* ear, int* ne, float* param, int* ifl, float* photar, float* photer);
 
+  void cph(const RealArray& energyArray, const RealArray& params,
+	   int spectrumNumber, RealArray& flux, RealArray& fluxErr, 
+	   const string& initString);
+  void vcph(const RealArray& energyArray, const RealArray& params,
+	    int spectrumNumber, RealArray& flux, RealArray& fluxErr, 
+	    const string& initString);
+  
+  void C_cph(const double* energy, int nFlux, const double* params,
+	     int spectrumNumber, double* flux, double* fluxError,
+	     const char* initStr) {
+    const size_t nPar = 4;
+
+    cppModelWrapper(energy, nFlux, params, spectrumNumber, flux, fluxError,
+		    initStr, nPar, cph);
+  }
+
+  void C_vcph(const double* energy, int nFlux, const double* params,
+	      int spectrumNumber, double* flux, double* fluxError,
+	      const char* initStr) {
+    const size_t nPar = 17;
+
+    cppModelWrapper(energy, nFlux, params, spectrumNumber, flux, fluxError,
+		    initStr, nPar, vcph);
+  }
+
+
 }
 
 
@@ -74,6 +102,8 @@ static PyMethodDef Wrappers[] = {
   // for _NORM parameters.
   //
   XSPECMODELFCT_C_NORM( C_zkerrbb, 10 ),
+  XSPECMODELFCT_C_NORM( C_cph, 5 ),
+  XSPECMODELFCT_C_NORM( C_vcph, 18 ),
   XSPECMODELFCT_NORM( agnslim, 15 ),
 
   { NULL, NULL, 0, NULL }

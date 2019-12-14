@@ -9,6 +9,8 @@ in
 At present the *only* supported models are:
 
  - `agnslim`
+ - `cluscool`
+ - `vcluscool`
  - `zkerrbb`
 
 and there has been *essentially no testing* to check this works

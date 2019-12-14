@@ -79,6 +79,8 @@ mod = Extension('xspeclmodels._models',
                 library_dirs=libs,
                 libraries=libnames,
                 sources=['src/xspeclmodels/src/_models.cxx',
+                         'src/xspeclmodels/src/cluscool.cxx',
+                         'src/xspeclmodels/src/vcluscool.cxx',
                          'src/xspeclmodels/src/zkerrbb.cxx'],
                 extra_objects=fobjs,
                 # , extra_link_args=['-lgfortran']

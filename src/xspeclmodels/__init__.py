@@ -5,6 +5,8 @@
 """
 Sherpa interface to XSPEC local models:
     agnslim
+    cluscool
+    vcluscool
     zkerrbb
 
 agnslim     14      0.03       1.e20          agnslim  add  0
@@ -22,6 +24,31 @@ R_warm      "Rg"         20.0       2         2       500      500	        0.1
 logrout     "(-selfg) "  -1.0      -3.0      -3.0       7.0      7.0       -1e-2
 rin         ""           -1        -1        -1       100.     100.        -1
 redshift    " "           0.0       0.        0.        5        5         -1
+
+CpH     4   0.        1.e20           C_cph   add  0
+peakT    keV     2.2       1.0e-1  1.0e-1   1.0e2       1.0e2       0.001
+Abund    " "     1.       0.      0.       1000.       1000.       -0.01
+Redshift " "     0.       1.0e-6  1.0e-6   50.         50.       -0.01
+$switch    1
+
+vCpH    17  0.         1.e20           C_vcph   add  0
+peakT   keV     2.2       1.0e-1  1.0e-1   1.0e2       1.0e2       0.001
+He       " "    1.    0.      0.   1000.     1000.       -0.01
+C        " "    1.    0.      0.   1000.     1000.       -0.01
+N        " "    1.    0.      0.   1000.     1000.       -0.01
+O        " "    1.    0.      0.   1000.     1000.       -0.01
+Ne       " "    1.    0.      0.   1000.     1000.       -0.01
+Na       " "    1.    0.      0.   1000.     1000.       -0.01
+Mg       " "    1.    0.      0.   1000.     1000.       -0.01
+Al       " "    1.    0.      0.   1000.     1000.       -0.01
+Si       " "    1.    0.      0.   1000.     1000.       -0.01
+S        " "    1.    0.      0.   1000.     1000.       -0.01
+Ar       " "    1.    0.      0.   1000.     1000.       -0.01
+Ca       " "    1.    0.      0.   1000.     1000.       -0.01
+Fe       " "    1.    0.      0.   1000.     1000.       -0.01
+Ni       " "    1.    0.      0.   1000.     1000.       -0.01
+Redshift " "    0.    1.0e-6  1.0e-6 50.       50.       -0.01
+$switch    1
 
 zkerrbb  9     0.     1.e6      C_zkerrbb  add     0
 eta   " "        0.     0.     0.        1.0          1.0       -0.01
@@ -42,7 +69,7 @@ from sherpa.astro.xspec import XSAdditiveModel, get_xsversion
 from . import _models
 
 
-__all__ = ('XSagnslim', 'XSzkerrbb', )
+__all__ = ('XSagnslim', 'XSCph', 'XSvCph', 'XSzkerrbb', )
 
 
 # We need to ensure that the XSPEC model library has been initialized
@@ -141,6 +168,139 @@ class XSagnslim(XSAdditiveModel):
                 self.kTe_hot, self.kTe_warm, self.Gamma_hot, self.Gamma_warm,
                 self.R_hot, self.R_warm, self.logrout, self.rin,
                 self.redshift, self.norm)
+        XSAdditiveModel.__init__(self, name, pars)
+
+
+class XSCpH(XSAdditiveModel):
+    """The XSPEC CpH model: Cluster cooling+heating
+
+    See [1]_ for more information.
+
+    Attributes
+    ----------
+    peakT
+        The peak temperature, in keV
+    Abund
+        The abundance relative to solar
+    Redshift
+        The redshift of the gas
+    switch
+        0 for calculate, 1 for interpolate, 2 for AtomDB
+    norm
+        The mass-accretion rate, in solar masses/year.
+
+    See Also
+    --------
+    XSvCph
+
+    References
+    ----------
+
+    .. [1] https://github.com/HEASARC/xspec_localmodels/tree/master/cluscool
+
+    """
+
+    _calc = _models.C_cph
+
+    def __init__(self, name='cph'):
+        self.peakT = Parameter(name, 'peakT', 2.2, 0.1, 100, 0.1, 100,
+                               units='keV')
+        self.Abund = Parameter(name, 'Abund', 1, 0, 1000, 0, 1000,
+                               frozen=True)
+        self.Redshift = Parameter(name, 'Redshift', 1e-6, 1e-6, 50, 1e-6, 50,
+                                  frozen=True)
+        self.switch = Parameter(name, 'switch', 1, 0, 2, 0, 2,
+                                alwaysfrozen=True)
+        self.norm = Parameter(name, 'norm', 1.0, 0, 1e24, 0, hugeval)
+
+        pars = (self.peakT, self.Abund, self.Redshift, self.switch, self.norm)
+        XSAdditiveModel.__init__(self, name, pars)
+
+
+class XSvCpH(XSAdditiveModel):
+    """The XSPEC vCpH model: Cluster cooling+heating
+
+    See [1]_ for more information.
+
+    Attributes
+    ----------
+    peakT
+        The peak temperature, in keV
+    He
+        He abundance relative to solar.
+    C
+        C abundance relative to solar.
+    N
+        N abundance relative to solar.
+    O
+        O abundance relative to solar.
+    Ne
+        Ne abundance relative to solar.
+    Na
+        Na abundance relative to solar.
+    Mg
+        Mg abundance relative to solar.
+    Al
+        Al abundance relative to solar.
+    Si
+        Si abundance relative to solar.
+    S
+        S abundance relative to solar.
+    Ar
+        Ar abundance relative to solar.
+    Ca
+        Ca abundance relative to solar.
+    Fe
+        Fe abundance relative to solar.
+    Ni
+        Ni abundance relative to solar.
+    Redshift
+        The redshift of the gas
+    switch
+        0 for calculate, 1 for interpolate, 2 for AtomDB
+    norm
+        The mass-accretion rate, in solar masses/year.
+
+    See Also
+    --------
+    XSCph
+
+    References
+    ----------
+
+    .. [1] https://github.com/HEASARC/xspec_localmodels/tree/master/cluscool
+
+    """
+
+    _calc = _models.C_vcph
+
+    def __init__(self, name='vcph'):
+        self.peakT = Parameter(name, 'peakT', 2.2, 0.1, 100, 0.1, 100,
+                               units='keV')
+        self.He = Parameter(name, 'He', 1, 0, 1000, 0, 1000, frozen=True)
+        self.C = Parameter(name, 'C', 1, 0, 1000, 0, 1000, frozen=True)
+        self.N = Parameter(name, 'N', 1, 0, 1000, 0, 1000, frozen=True)
+        self.O = Parameter(name, 'O', 1, 0, 1000, 0, 1000, frozen=True)
+        self.Ne = Parameter(name, 'Ne', 1, 0, 1000, 0, 1000, frozen=True)
+        self.Na = Parameter(name, 'Na', 1, 0, 1000, 0, 1000, frozen=True)
+        self.Mg = Parameter(name, 'Mg', 1, 0, 1000, 0, 1000, frozen=True)
+        self.Al = Parameter(name, 'Al', 1, 0, 1000, 0, 1000, frozen=True)
+        self.Si = Parameter(name, 'Si', 1, 0, 1000, 0, 1000, frozen=True)
+        self.S = Parameter(name, 'S', 1, 0, 1000, 0, 1000, frozen=True)
+        self.Ar = Parameter(name, 'Ar', 1, 0, 1000, 0, 1000, frozen=True)
+        self.Ca = Parameter(name, 'Ca', 1, 0, 1000, 0, 1000, frozen=True)
+        self.Fe = Parameter(name, 'Fe', 1, 0, 1000, 0, 1000, frozen=True)
+        self.Ni = Parameter(name, 'Ni', 1, 0, 1000, 0, 1000, frozen=True)
+        self.Redshift = Parameter(name, 'Redshift', 1e-6, 1e-6, 50, 1e-6, 50,
+                                  frozen=True)
+        self.switch = Parameter(name, 'switch', 1, 0, 2, 0, 2,
+                                alwaysfrozen=True)
+        self.norm = Parameter(name, 'norm', 1.0, 0, 1e24, 0, hugeval)
+
+        pars = (self.peakT, self.He, self.C, self.N, self.O, self.Ne,
+                self.Na, self.Mg, self.Al, self.Si, self.S, self.Ar,
+                self.Ca, self.Fe, self.Ni,
+                self.Redshift, self.switch, self.norm)
         XSAdditiveModel.__init__(self, name, pars)
 
 
