@@ -28,6 +28,15 @@ would have to be replaced with those for XSPEC 12.10.0, the
 library versions for the XSPEC libraries changed in `setup.py`,
 and the link issues mentioned above worked out).
 
+## Models already in Sherpa
+
+The following models are in XSPEC 12.10.1, and so are included in CIAO 4.12
+(there will be no attempt to include these models in this module):
+
+ - agnsed/: `agnsed`, `qsosed`
+ - cluscool/: `cph`, `vcph`
+ - ky/: `kyrline` (`kyconv` is a convolution model which is not directly-supported by Sherpa)
+ 
 ## What versions of the models are used?
 
 The models are taken from the
