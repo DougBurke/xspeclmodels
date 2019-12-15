@@ -66,6 +66,8 @@ extern "C" {
 
   void agnslim_(float* ear, int* ne, float* param, int* ifl, float* photar, float* photer);
 
+  void thcompf_(float* ear, int* ne, float* param, int* ifl, float* photar, float* photer);
+
 }
 
 
@@ -75,6 +77,7 @@ static PyMethodDef Wrappers[] = {
   //
   XSPECMODELFCT_C_NORM( C_zkerrbb, 10 ),
   XSPECMODELFCT_NORM( agnslim, 15 ),
+  XSPECMODELFCT_CON_F77( thcompf, 3 ),
 
   { NULL, NULL, 0, NULL }
 };

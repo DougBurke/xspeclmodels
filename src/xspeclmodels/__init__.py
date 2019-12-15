@@ -3,9 +3,12 @@
 # It was written by Douglas Burke dburke.gw@gmail.com
 #
 """
-Sherpa interface to XSPEC local models:
+Sherpa interface to XSPEC local models from [1]_:
+
     agnslim
     zkerrbb
+    thcompc (convolution; only supported if CIAO contrib package
+             is loaded)
 
 agnslim     14      0.03       1.e20          agnslim  add  0
 mass        solar       1e7         1.0       1.0       1.e10   1.e10       -.1
@@ -34,15 +37,34 @@ fcol  " "        2.  -100.  -100.      100.         100.        -0.01
 $rflag     1
 $lflag     1
 
+thcompc      3   0.03       1.e20           thcompf  con 0
+gamma_tau   " "  1.7   1.001      1.001      5         10        0.01
+kT_e        keV  50.   0.5        0.5      150.0      150.0      0.1
+z           " "  0.0   0.0        0.0       5.0         5.0     -0.01
+
+References
+----------
+
+.. [1] https://github.com/HEASARC/xspec_localmodels/
+
 """
 
 from sherpa.models.parameter import Parameter, hugeval
 from sherpa.astro.xspec import XSAdditiveModel, get_xsversion
 
+try:
+    from sherpa_contrib.xspec.xsmodels import XSConvolutionKernel
+    support_convolve = True
+except ImportError:
+    support_convolve = False
+
 from . import _models
 
+__all__ = ['XSagnslim', 'XSzkerrbb']
+if support_convolve:
+    __all__.append('XSthcompc')
 
-__all__ = ('XSagnslim', 'XSzkerrbb', )
+__all__ = tuple(__all__)
 
 
 # We need to ensure that the XSPEC model library has been initialized
@@ -210,3 +232,60 @@ class XSzkerrbb(XSAdditiveModel):
         pars = (self.eta, self.a, self.i, self.Mbh, self.Mdd, self.z,
                 self.fcol, self.rflag, self.lflag, self.norm)
         XSAdditiveModel.__init__(self, name, pars)
+
+
+if support_convolve:
+
+    class XSthcompc(XSConvolutionKernel):
+        """The XSPEC thcompc model: Thermally comptonized continuum
+
+        For a description see [1]_.
+
+        .. warning::
+           This is a convolution kernel (that is, it modifies the spectrum
+           created by a model expression). This means that it is used
+           differently, and has seen *NO* testing. Note that Sherpa in
+           CIAO 4.12 has no "easy" way to extend the analysis grid
+           (although it can do so, this has not been tested with XSPEC
+           models).
+
+        Attributes
+        ----------
+        gamma_tau
+            >0: the low-energy power-law photon index;
+            <0: the Thomson optical depth (given by the absolute value).
+        kT_e
+            electron temperature (high energy rollover)
+        z
+
+        References
+        ----------
+
+        .. [1] https://github.com/HEASARC/xspec_localmodels/tree/master/thcompc
+
+        Examples
+        --------
+
+        As this is a convolution model, it needs to be applied to a model
+        expression, so we generate one using a powerlaw *just* for the example
+        (in actual use this is likely to be more complex).
+
+        >>> continuum = XSpowerlaw('continuum')
+        >>> cmdl = XSthcompc('comptonization')
+        >>> mdl = cmdl(continuum)
+
+        """
+
+        _calc = _models.thcompf
+
+        def __init__(self, name='thcompc'):
+
+            self.gamma_tau = Parameter(name, 'gamma_tau', 1.7, 1.001, 5,
+                                       1.001, 10)
+            self.kT_e = Parameter(name, 'kT_e', 50, 0.5, 150, 0.5, 150,
+                                  units='keV')
+            self.z = Parameter(name, 'z', 0.0, 0, 5, 0, 5,
+                               frozen=True)
+
+            pars = (self.gamma_tau, self.kT_e, self.z)
+            XSConvolutionKernel.__init__(self, name, pars)
