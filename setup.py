@@ -92,7 +92,8 @@ mod = Extension('xspeclmodels._models',
                 sources=['src/xspeclmodels/src/_models.cxx',
                          'src/xspeclmodels/src/zkerrbb.cxx'],
                 extra_objects=fobjs,
-                # , extra_link_args=['-lgfortran']
+                # extra_link_args=['-lgfortran'],
+                depends=fobjs,
                 )
 
 # Manually compile the FORTRAN code; really should place this into the
