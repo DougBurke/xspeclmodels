@@ -12,16 +12,18 @@ module then we skip it here.
 
 """
 
+import logging
+
 from sherpa.astro import ui
 from sherpa.astro import xspec
 
-import logging
-
 import xspeclmodels
-
 
 logger = logging.getLogger('sherpa')
 
+# For now process all models (including convolution style) the
+# same way.
+#
 xsmodels = set([n for n in dir(xspec) if n.startswith('XS')])
 
 for name in xspeclmodels.__all__:
