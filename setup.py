@@ -63,16 +63,27 @@ libnames = ["XSFunctions", "XSUtil", "XS", "hdsp_6.26",
 # What FORTRAN code needs compiling?
 #
 fdir = os.path.join('src', 'xspeclmodels', 'src')
-fcodes = []
-fobjs = []
+f77 = []
+f90 = []
 for fhead in ['agnslim', 'zrunkbb']:
     fcode = os.path.join(fdir, '{}.f'.format(fhead))
-    fcodes.append(fcode)
 
     # Would realy like to put this in the build directory
     #
     fobj = os.path.join(fdir, '{}.o'.format(fhead))
-    fobjs.append(fobj)
+
+    f77.append((fcode, fobj))
+
+for fhead in ['th']:
+    fcode = os.path.join(fdir, '{}.f90'.format(fhead))
+
+    # Would realy like to put this in the build directory
+    #
+    fobj = os.path.join(fdir, '{}.o'.format(fhead))
+
+    f90.append((fcode, fobj))
+
+fobjs = [o for _,o in f77] + [o for _,o in f90]
 
 mod = Extension('xspeclmodels._models',
                 include_dirs=includes,
@@ -92,12 +103,24 @@ mod = Extension('xspeclmodels._models',
 cmplr = fcompiler.new_fcompiler()
 cmplr.customize()
 
-for fcode, fobj in zip(fcodes, fobjs):
+for fcode, fobj in f77:
     if os.path.exists(fobj):
         os.remove(fobj)
 
     cmds = cmplr.compiler_f77 + ['-c', fcode, '-o', fobj]
-    print("Manually building FORTRAN with:")
+    print("Manually building FORTRAN 77 with:")
+    print(" ".join(cmds))
+    subprocess.run(cmds, check=True)
+
+    if not os.path.exists(fobj):
+        raise IOError("Unable to compile {} to create {}".format(fcode, fobj))
+
+for fcode, fobj in f90:
+    if os.path.exists(fobj):
+        os.remove(fobj)
+
+    cmds = cmplr.compiler_f90 + ['-c', fcode, '-o', fobj]
+    print("Manually building FORTRAN 90 with:")
     print(" ".join(cmds))
     subprocess.run(cmds, check=True)
 
