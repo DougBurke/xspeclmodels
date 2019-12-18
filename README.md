@@ -4,11 +4,15 @@
 This is an experiment in providing support for the
 [XSPEC local models](https://github.com/HEASARC/xspec_localmodels)
 in
-[Sherpa](https://cxc.harvard.edu/sherpa/).
+[Sherpa](https://cxc.harvard.edu/sherpa/). It relies on you
+having used the [conda installation
+method](https://cxc.harvard.edu/ciao/download/conda.html) to
+install CIAO 4.12.
 
 At present the *only* supported models are:
 
  - `agnslim`
+ - `thcompc` (although this is known to be problematic, so don't try it)
  - `zkerrbb`
 
 and there has been *essentially no testing* to check this works
@@ -16,17 +20,21 @@ correctly (although development of this package did find
 a bug in the FORTRAN code of the `zkerrbb` model).
 
 At the moment I have only got this working with the conda
-release of CIAO 4.12, using Linux/Python 3.7. I have not tested
-other conda Python versions, or the macOS conda version. I have
-*not* been able to get the models to link against the ciao-install
-version of CIAO (I suspect a compiler version issue), so at present
-I advise using the conda build.
+release of CIAO 4.12, using Linux/Python 3.7 and macOS/Python 3.7.
+I have not tested the other conda Python versions, and it does
+not seem to work with the ciao-install version of CIAO (this version
+was build using an old version of gcc and it looks like it creates
+a different ABI for the compiled code, and this is more than I ever
+wanted to know about linkers so I am concentrating on the conda
+version).
 
 It *could* be made to work with CIAO 4.11 but I do not have time
-to do so at this time (the include files in the `xspec/` directory
+to do so at this time, and CIAO 4.12 is now available. If you did
+want to try, the include files in the `xspec/` directory
 would have to be replaced with those for XSPEC 12.10.0, the
 library versions for the XSPEC libraries changed in `setup.py`,
-and the link issues mentioned above worked out).
+and the link issues mentioned above worked out (since CIAO 4.11
+is only available via ciao-install).
 
 ## Models already in Sherpa
 
@@ -58,7 +66,7 @@ product of my employer.
 
 # Installation
 
-Start up CIAO - preferably the conda version of CIAO 4.12 - and then try
+Start up a conda-installed version of CIAO 4.12 and then try
 
 ```
 % git clone https://github.com/DougBurke/xspeclmodels
@@ -68,21 +76,18 @@ Start up CIAO - preferably the conda version of CIAO 4.12 - and then try
 
 Hopefully there'll be no error message here.
 
-You can change to the build directory, it will be called
-`build/lib.<something-or-other-involving-linux-or-macos>`,
-to test out the module. I suggest the example session from the
-"Use" section below.
+I strongly suggest a little test of the code (since I haven't added
+a test script to the package yet): 
+
+a) change to the build directory, it will be called
+`build/lib.<something-or-other-involving-linux-or-macos>`
+
+b) try the example section from the "Use" section below, and
+see if you get the same plot as I do.
 
 After testing - or before, if you feel adventurous - you will
 want to install the module (or you can just copy around the files
-to your current working directory). Note that you will need write
-permission to your Python environment, which likely means you installed
-CIAO yourself (if installed with `ciao-install`), or you
-are trying out the conda installation of CIAO. This means
-there is a possibility that it could mess up your CIAO installation
-(unlikely, but I mention it just in case). You do keep the
-download files for CIAO (when using `ciao-install`), don't
-you!
+to your current working directory).
 
 ```
 % python setup.py install
@@ -103,7 +108,7 @@ Sherpa 4.12.0
 
 Python 3.7.5 (default, Oct 25 2019, 15:51:11)
 Type 'copyright', 'credits' or 'license' for more information
-IPython 7.10.1 -- An enhanced Interactive Python. Type '?' for help.
+IPython 7.10.2 -- An enhanced Interactive Python. Type '?' for help.
 
 IPython profile: sherpa
 Using matplotlib backend: Qt5Agg
@@ -111,6 +116,7 @@ Using matplotlib backend: Qt5Agg
 sherpa In [1]: import xspeclmodels.ui
 Adding XSPEC local model: xsagnslim
 Adding XSPEC local model: xszkerrbb
+Adding XSPEC local model: xsthcompc
 
 sherpa In [2]: src = xsphabs.gal * xszkerrbb.mdl
 

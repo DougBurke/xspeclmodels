@@ -31,6 +31,7 @@ import subprocess
 # from numpy.distutils.core import setup, Extension
 from distutils.core import setup, Extension
 
+import numpy
 from numpy.distutils import fcompiler
 
 import sherpa
@@ -42,7 +43,7 @@ def up(p):
 basepath = up(sherpa.__file__)
 sherpa_incpath = os.path.join(basepath, 'include')
 xspec_basedir = "xspec"
-includes = [sherpa_incpath]
+includes = [numpy.get_include(), sherpa_incpath]
 for dname in ["", "include", "XSFunctions"]:
     includes.append(os.path.join(xspec_basedir, dname))
 
@@ -51,7 +52,12 @@ for include in includes:
         raise IOError("Unable to find {}".format(include))
 
 # Where are the XSPEC libraries?
-libs = [os.path.join(basepath, 'lib')]
+#
+# They are located in different places in ciao-install vs conda,
+# but for now concentrating on conda and - on Linux at least -
+# the path doesn't appear to be needed
+#
+libs = []
 
 # the choice of libs depends on the XSPEC model library version,
 # which makes this harder to write than I'd like. So Let's just
@@ -92,6 +98,7 @@ mod = Extension('xspeclmodels._models',
                 sources=['src/xspeclmodels/src/_models.cxx',
                          'src/xspeclmodels/src/zkerrbb.cxx'],
                 extra_objects=fobjs,
+                extra_link_args=['-Wl,-no_compact_unwind'],
                 # extra_link_args=['-lgfortran'],
                 depends=fobjs,
                 )
