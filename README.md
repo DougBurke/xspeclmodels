@@ -71,7 +71,7 @@ Start up a conda-installed version of CIAO 4.12 and then try
 ```
 % git clone https://github.com/DougBurke/xspeclmodels
 % cd xspeclmodels
-% python setup.py build_ext --inplace
+% pip install -e .
 ```
 
 Hopefully there'll be no error message here. Now try running the
