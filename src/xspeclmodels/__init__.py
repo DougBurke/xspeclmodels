@@ -225,8 +225,8 @@ class XSzkerrbb(XSAdditiveModel):
         self.z = Parameter(name, 'z', 0.01, 0, 10, 0, 10, frozen=True)
         self.fcol = Parameter(name, 'fcol', 2, -100, 100, -100, 100,
                               frozen=True)
-        self.rflag = Parameter(name, 'rflag', 1)
-        self.lflag = Parameter(name, 'lflag', 1)
+        self.rflag = Parameter(name, 'rflag', 1, alwaysfrozen=True)
+        self.lflag = Parameter(name, 'lflag', 1, alwaysfrozen=True)
         self.norm = Parameter(name, 'norm', 1.0, 0, 1e24, 0, hugeval)
 
         pars = (self.eta, self.a, self.i, self.Mbh, self.Mdd, self.z,
