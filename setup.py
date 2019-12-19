@@ -91,6 +91,19 @@ for fhead in ['th']:
 
 fobjs = [o for _,o in f77] + [o for _,o in f90]
 
+# Seems to be needed on macOS, otherwise link time creates this
+# message:
+#
+# ld: warning: could not create compact unwind for _zrunkbb_: stack subq instruction is too different from dwarf stack size
+#
+# No idea if this breaks anything (more likely to slow the calls
+# somewhat).
+#
+if os.uname().sysname == 'Darwin':
+    cargs = ['-Wl,-no_compact_unwind']
+else:
+    cargs = []
+
 mod = Extension('xspeclmodels._models',
                 include_dirs=includes,
                 library_dirs=libs,
@@ -98,7 +111,7 @@ mod = Extension('xspeclmodels._models',
                 sources=['src/xspeclmodels/src/_models.cxx',
                          'src/xspeclmodels/src/zkerrbb.cxx'],
                 extra_objects=fobjs,
-                extra_link_args=['-Wl,-no_compact_unwind'],
+                extra_link_args=cargs,
                 # extra_link_args=['-lgfortran'],
                 depends=fobjs,
                 )
