@@ -28,8 +28,10 @@
 import os
 import subprocess
 
+import setuptools
+
 # from numpy.distutils.core import setup, Extension
-from distutils.core import setup, Extension
+from distutils.core import Extension
 
 import numpy
 from numpy.distutils import fcompiler
@@ -91,6 +93,19 @@ for fhead in ['th']:
 
 fobjs = [o for _,o in f77] + [o for _,o in f90]
 
+# Seems to be needed on macOS, otherwise link time creates this
+# message:
+#
+# ld: warning: could not create compact unwind for _zrunkbb_: stack subq instruction is too different from dwarf stack size
+#
+# No idea if this breaks anything (more likely to slow the calls
+# somewhat).
+#
+if os.uname().sysname == 'Darwin':
+    cargs = ['-Wl,-no_compact_unwind']
+else:
+    cargs = []
+
 mod = Extension('xspeclmodels._models',
                 include_dirs=includes,
                 library_dirs=libs,
@@ -98,7 +113,7 @@ mod = Extension('xspeclmodels._models',
                 sources=['src/xspeclmodels/src/_models.cxx',
                          'src/xspeclmodels/src/zkerrbb.cxx'],
                 extra_objects=fobjs,
-                extra_link_args=['-Wl,-no_compact_unwind'],
+                extra_link_args=cargs,
                 # extra_link_args=['-lgfortran'],
                 depends=fobjs,
                 )
@@ -136,25 +151,31 @@ for fcode, fobj in f90:
         raise IOError("Unable to compile {} to create {}".format(fcode, fobj))
 
 
-setup(name='xspeclmodels',
-      author='Douglas Burke',
-      author_email='dburke.gw@gmail.com',
-      version='1.0',
-      description='XSPEC user-models in Sherpa: zkerrbb',
-      long_description=open('README.md', 'rt').read(),
-      long_description_content_type='text/markdown',
-      packages=['xspeclmodels'],
-      package_dir={'xspeclmodels': 'src/xspeclmodels',
-                   'xspeclmodels._models': 'src/xspeclmodels/src'},
-      ext_modules=[mod],
-      classifiers=['License :: CC0 1.0 Universal (CC0 1.0) Public Domain Dedicationm',
-                   'Intended Audience :: Science/Research',
-                   'Programming Language :: Python :: 3.5',
-                   'Programming Language :: Python :: 3.6',
-                   'Programming Language :: Python :: 3.7',
-                   'Programming Language :: Python :: Implementation :: CPython',
-                   'Topic :: Scientific/Engineering :: Astronomy',
-                   'Topic :: Scientific/Engineering :: Physics',
-                   'Development Status :: 3 - Alpha'
-          ]
-)
+kwargs = {
+    'name': 'xspeclmodels',
+    'author': 'Douglas Burke',
+    'author_email': 'dburke.gw@gmail.com',
+    'version': '1.0',
+    'description': 'XSPEC user-models in Sherpa: agnslim, zkerrbb, thcompc',
+    'long_description': open('README.md', 'rt').read(),
+    'long_description_content_type': 'text/markdown',
+
+    'packages': setuptools.find_packages('src'),
+    'package_dir': {'': 'src/'},
+
+    'ext_modules': [mod],
+
+    'classifiers': [
+        'License :: CC0 1.0 Universal (CC0 1.0) Public Domain Dedicationm',
+        'Intended Audience :: Science/Research',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: Implementation :: CPython',
+        'Topic :: Scientific/Engineering :: Astronomy',
+        'Topic :: Scientific/Engineering :: Physics',
+        'Development Status :: 3 - Alpha'
+    ]
+}
+
+setuptools.setup(**kwargs)
