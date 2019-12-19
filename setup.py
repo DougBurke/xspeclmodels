@@ -28,8 +28,10 @@
 import os
 import subprocess
 
+import setuptools
+
 # from numpy.distutils.core import setup, Extension
-from distutils.core import setup, Extension
+from distutils.core import Extension
 
 import numpy
 from numpy.distutils import fcompiler
@@ -149,25 +151,31 @@ for fcode, fobj in f90:
         raise IOError("Unable to compile {} to create {}".format(fcode, fobj))
 
 
-setup(name='xspeclmodels',
-      author='Douglas Burke',
-      author_email='dburke.gw@gmail.com',
-      version='1.0',
-      description='XSPEC user-models in Sherpa: zkerrbb',
-      long_description=open('README.md', 'rt').read(),
-      long_description_content_type='text/markdown',
-      packages=['xspeclmodels'],
-      package_dir={'xspeclmodels': 'src/xspeclmodels',
-                   'xspeclmodels._models': 'src/xspeclmodels/src'},
-      ext_modules=[mod],
-      classifiers=['License :: CC0 1.0 Universal (CC0 1.0) Public Domain Dedicationm',
-                   'Intended Audience :: Science/Research',
-                   'Programming Language :: Python :: 3.5',
-                   'Programming Language :: Python :: 3.6',
-                   'Programming Language :: Python :: 3.7',
-                   'Programming Language :: Python :: Implementation :: CPython',
-                   'Topic :: Scientific/Engineering :: Astronomy',
-                   'Topic :: Scientific/Engineering :: Physics',
-                   'Development Status :: 3 - Alpha'
-          ]
-)
+kwargs = {
+    'name': 'xspeclmodels',
+    'author': 'Douglas Burke',
+    'author_email': 'dburke.gw@gmail.com',
+    'version': '1.0',
+    'description': 'XSPEC user-models in Sherpa: agnslim, zkerrbb, thcompc',
+    'long_description': open('README.md', 'rt').read(),
+    'long_description_content_type': 'text/markdown',
+
+    'packages': setuptools.find_packages('src'),
+    'package_dir': {'': 'src/'},
+
+    'ext_modules': [mod],
+
+    'classifiers': [
+        'License :: CC0 1.0 Universal (CC0 1.0) Public Domain Dedicationm',
+        'Intended Audience :: Science/Research',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: Implementation :: CPython',
+        'Topic :: Scientific/Engineering :: Astronomy',
+        'Topic :: Scientific/Engineering :: Physics',
+        'Development Status :: 3 - Alpha'
+    ]
+}
+
+setuptools.setup(**kwargs)

@@ -44,7 +44,7 @@ The following models are in XSPEC 12.10.1, and so are included in CIAO 4.12
  - agnsed/: `agnsed`, `qsosed`
  - cluscool/: `cph`, `vcph`
  - ky/: `kyrline` (`kyconv` is a convolution model which is not directly-supported by Sherpa)
- 
+
 ## What versions of the models are used?
 
 The models are taken from the
@@ -71,23 +71,39 @@ Start up a conda-installed version of CIAO 4.12 and then try
 ```
 % git clone https://github.com/DougBurke/xspeclmodels
 % cd xspeclmodels
-% python setup.py build
+% python setup.py build_ext --inplace
 ```
 
-Hopefully there'll be no error message here.
+Hopefully there'll be no error message here. Now try running the
+tests (which may require you to `conda install pytest` first):
 
-I strongly suggest a little test of the code (since I haven't added
-a test script to the package yet): 
+```
+% pytest
+=========================================== test session starts ============================================
+platform linux -- Python 3.7.5, pytest-5.3.2, py-1.8.0, pluggy-0.13.1
+rootdir: /somewhere/over/the/rainbow/xspeclmpodels
+collected 15 items
 
-a) change to the build directory, it will be called
-`build/lib.<something-or-other-involving-linux-or-macos>`
+src/tests/test_xspeclmodels.py ........                                                              [ 53%]
+src/tests/test_xspeclmodels_ui.py .......                                                            [100%]
 
-b) try the example section from the "Use" section below, and
-see if you get the same plot as I do.
+============================================= warnings summary =============================================
+/home/ahappycamper/anaconda/envs/ciao412/lib/python3.7/site-packages/pytransform/__init__.py:13
+  /home/ahappycamper/anaconda/envs/ciao412/lib/python3.7/site-packages/pytransform/__init__.py:13: DeprecationWarning: the imp module is deprecated in favour of importlib; see the module's documentation for alternative uses
+    import imp
 
-After testing - or before, if you feel adventurous - you will
-want to install the module (or you can just copy around the files
-to your current working directory).
+-- Docs: https://docs.pytest.org/en/latest/warnings.html
+====================================== 15 passed, 1 warning in 1.85s =======================================
+```
+
+Note that the `DeprecationWarning` about `pytransform` can be ignored.
+If there are any failures here then please check the
+[issues list](https://github.com/DougBurke/xspeclmodels/issues) to see
+if it's known about and, if not, add an issue.
+
+Once the tests have passed (note that they are very limited, and are
+only designed to check the models are "doing something", not that they
+are doing the right thing!), you can install the module with:
 
 ```
 % python setup.py install
