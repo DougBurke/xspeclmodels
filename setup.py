@@ -22,16 +22,21 @@
 # to this code. My experiments to stop f2py from creating such an
 # interface have been fruitless so far. So this module manually
 # compiles the FORTRAN code and then tells the Extension to link
-# in the object file.
+# in the object file. I have tried to integrate this into the
+# "command" system of the build process, but perhaps I should just
+# treat the FORTRAN code as creating a separate library that needs
+# to be compiled as part of the build?
 #
 
 import os
-import subprocess
 
 import setuptools
 
 # from numpy.distutils.core import setup, Extension
 from distutils.core import Extension
+from distutils.command.build_ext import build_ext
+
+from distutils import log
 
 import numpy
 from numpy.distutils import fcompiler
@@ -42,6 +47,11 @@ def up(p):
     return os.path.dirname(p)
 
 # What is the best way to find the Sherpa-provided include files?
+# I was trying to support both ciao-install and conda installations
+# of CIAO, but I have "given up" on ciao-install for now.
+#
+# Should Sherpa provide a way to get at this path?
+#
 basepath = up(sherpa.__file__)
 sherpa_incpath = os.path.join(basepath, 'include')
 xspec_basedir = "xspec"
@@ -70,36 +80,18 @@ libnames = ["XSFunctions", "XSUtil", "XS", "hdsp_6.26",
 
 # What FORTRAN code needs compiling?
 #
-fdir = os.path.join('src', 'xspeclmodels', 'src')
-f77 = []
-f90 = []
-for fhead in ['agnslim', 'zrunkbb']:
-    fcode = os.path.join(fdir, '{}.f'.format(fhead))
+FORTRANFILES = ['src/xspec/agnslim.f',
+                'src/xspec/zrunkbb.f',
+                'src/xspec/th.f90']
 
-    # Would realy like to put this in the build directory
-    #
-    fobj = os.path.join(fdir, '{}.o'.format(fhead))
-
-    f77.append((fcode, fobj))
-
-for fhead in ['th']:
-    fcode = os.path.join(fdir, '{}.f90'.format(fhead))
-
-    # Would realy like to put this in the build directory
-    #
-    fobj = os.path.join(fdir, '{}.o'.format(fhead))
-
-    f90.append((fcode, fobj))
-
-fobjs = [o for _,o in f77] + [o for _,o in f90]
 
 # Seems to be needed on macOS, otherwise link time creates this
 # message:
 #
 # ld: warning: could not create compact unwind for _zrunkbb_: stack subq instruction is too different from dwarf stack size
 #
-# No idea if this breaks anything (more likely to slow the calls
-# somewhat).
+# No idea if this breaks anything (more likely to slow the execution of
+# the code, from what the internet tells me).
 #
 if os.uname().sysname == 'Darwin':
     cargs = ['-Wl,-no_compact_unwind']
@@ -111,44 +103,45 @@ mod = Extension('xspeclmodels._models',
                 library_dirs=libs,
                 libraries=libnames,
                 sources=['src/xspeclmodels/src/_models.cxx',
-                         'src/xspeclmodels/src/zkerrbb.cxx'],
-                extra_objects=fobjs,
+                         'src/xspec/zkerrbb.cxx'],
                 extra_link_args=cargs,
                 # extra_link_args=['-lgfortran'],
-                depends=fobjs,
+                depends=FORTRANFILES
                 )
 
-# Manually compile the FORTRAN code; really should place this into the
-# build directory but for now just do it here. It's also not clear to
-# me if this is the most-sensible way to do this (I would be surprised
-# as it is the first-ish thing I got to work).
+# TODO:
 #
-cmplr = fcompiler.new_fcompiler()
-cmplr.customize()
+# This could be made more generic by inspecting the sources sent
+# in to it, and pulling out the FORTRAN code from it. It also always
+# recompiles the FORTRAN code, even if it hasn't changed, but then
+# doesn't do anything with it.
+#
+# Should I really be looking at build_clib for inspiration, guidance,
+# and fashion tips?
+#
+class ExtBuild(build_ext):
 
-for fcode, fobj in f77:
-    if os.path.exists(fobj):
-        os.remove(fobj)
+    def run(self):
 
-    cmds = cmplr.compiler_f77 + ['-c', fcode, '-o', fobj]
-    print("Manually building FORTRAN 77 with:")
-    print(" ".join(cmds))
-    subprocess.run(cmds, check=True)
+        # Manually compile the FORTRAN code; this is all a bit too
+        # hand coded
+        #
+        cmplr = fcompiler.new_fcompiler()
+        cmplr.customize()
 
-    if not os.path.exists(fobj):
-        raise IOError("Unable to compile {} to create {}".format(fcode, fobj))
+        self.announce('Compiling FORTRAN code', level=log.INFO)
+        fobjs = cmplr.compile(FORTRANFILES,
+                              output_dir=self.build_temp,
+                              debug=self.debug)
 
-for fcode, fobj in f90:
-    if os.path.exists(fobj):
-        os.remove(fobj)
+        # Could just append if set, but for now expect not to be
+        # set, so error out if this changes
+        #
+        assert self.link_objects is None, \
+            'unexpected: link_objects={}'.format(self.link_objects)
+        self.link_objects = fobjs
 
-    cmds = cmplr.compiler_f90 + ['-c', fcode, '-o', fobj]
-    print("Manually building FORTRAN 90 with:")
-    print(" ".join(cmds))
-    subprocess.run(cmds, check=True)
-
-    if not os.path.exists(fobj):
-        raise IOError("Unable to compile {} to create {}".format(fcode, fobj))
+        super().run()
 
 
 kwargs = {
@@ -175,7 +168,9 @@ kwargs = {
         'Topic :: Scientific/Engineering :: Astronomy',
         'Topic :: Scientific/Engineering :: Physics',
         'Development Status :: 3 - Alpha'
-    ]
+    ],
+
+    'cmdclass': { 'build_ext': ExtBuild },
 }
 
 setuptools.setup(**kwargs)
