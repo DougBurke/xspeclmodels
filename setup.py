@@ -43,17 +43,11 @@ from numpy.distutils import fcompiler
 
 import sherpa
 
-def up(p):
-    return os.path.dirname(p)
-
 # What is the best way to find the Sherpa-provided include files?
 # I was trying to support both ciao-install and conda installations
 # of CIAO, but I have "given up" on ciao-install for now.
 #
-# Should Sherpa provide a way to get at this path?
-#
-basepath = up(sherpa.__file__)
-sherpa_incpath = os.path.join(basepath, 'include')
+sherpa_incpath = sherpa.get_include()
 xspec_basedir = "xspec"
 includes = [numpy.get_include(), sherpa_incpath]
 for dname in ["", "include", "XSFunctions"]:
@@ -74,6 +68,8 @@ libs = []
 # the choice of libs depends on the XSPEC model library version,
 # which makes this harder to write than I'd like. So Let's just
 # hard code it at the moment.
+#
+# These should be valid for CIAO 4.12 and 4.13.
 #
 libnames = ["XSFunctions", "XSUtil", "XS", "hdsp_6.26",
             "CCfits_2.5", "cfitsio"]
